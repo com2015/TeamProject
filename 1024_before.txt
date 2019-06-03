@@ -1,0 +1,218 @@
+// 수정되기 전 1024게임의 최초 파일
+// 출처 : https://blog.naver.com/kse5217
+
+#include <iostream>
+#include <string>
+#include <Windows.h>
+#include <cstdlib>
+#include <ctime>
+#include <conio.h>
+ 
+#define XSIZE 4
+#define YSIZE 4 
+using namespace std;
+
+int game_board[XSIZE][YSIZE]={0};
+ 
+int level = 0;
+int higher = 0;
+int count = 0;
+
+void game(){ // 도입부 
+ cout << "---------------------------------------------" << endl;
+ cout << "            어서 오세요 1024입니다.          " << endl;
+ cout << "---------------------------------------------" << endl;
+ cout << " 난이도를 선택해 주세요(스페이스 바로 선택)" << endl;
+ cout << "easy";
+ char key;
+ for(;;){
+  key =_getch();
+  if(key==75){
+   cout << "\b\b\b\bhard";
+   level = 1;
+  }
+  if(key==77){
+   cout << "\b\b\b\beasy";
+   level = 0;
+  }
+  if(key == 32){
+   cout << "\b\b\b\b";
+   break;
+  }
+ }
+ if(level == 0)
+  cout << "easy 모드" << endl; 
+ else
+  cout << "hard 모드" << endl;
+ srand((unsigned)time(NULL));
+ for(int i=0;i<3;){
+  int x = rand()%XSIZE;
+  int y = rand()%YSIZE;
+  if(game_board[x][y] == 0){
+   game_board[x][y] = 1;
+   i++;
+  }
+ }
+ system("cls");
+}
+
+int blank(int x){ // 디스플레이의 공백 부분 만들어주는 함수 
+ int y = 1;
+ if(x/100 == 0){
+  if(x/10 == 0){
+   y++;
+  }
+  y++;
+ }
+ return y;
+}
+
+bool show(){ // 게임 보드판 디스플레이 및 게임종료 상황 체크 
+ bool check = false; 
+ cout << "---------------------------------------------" << endl;
+ cout << "            즐거운 게임 하십시오.            " << endl;
+ cout << "---------------------------------------------" << endl;
+ if(level == 0)
+  cout << "                easy 모드                    " << endl;
+ else
+  cout << "                hard 모드                    " << endl;
+ 
+ cout << "---------------------------------------------" << endl;
+ for(int i=0;i<XSIZE;i++){
+  for(int j=0;j<YSIZE;j++){
+   for(int k=0;k<blank(game_board[i][j]);k++){
+    cout << " ";
+   }
+   if(higher < game_board[i][j]){
+    higher = game_board[i][j];
+   }
+   if(game_board[i][j] == 0){
+    check = true;
+   }
+   cout << game_board[i][j];
+  }
+  cout << endl;
+ }
+ cout << "end?" << endl;
+ cout << "최고 숫자 : " << higher << endl;
+ cout << "턴 : " << count/2 << endl;
+ return check;
+}
+
+void game_rule(char end){ // 게임 룰  
+ for(int n=0;n<XSIZE;n++){ // 이걸 쓰지않으면 이동하기전에 있는 블럭 또한 계산되어서 바로 안감 
+  for(int i=0;i<XSIZE;i++){
+   for(int j=0;j<YSIZE;j++){
+    if(end ==75){ // 좌 
+     if(j!=0){ // 게임판의 좌측의 값이 0이라면 
+      if(game_board[i][j-1] == 0){
+       game_board[i][j-1] = game_board[i][j];
+       game_board[i][j] = 0;
+      }
+      else if(game_board[i][j-1] == game_board[i][j]){
+       game_board[i][j-1] += game_board[i][j];
+       game_board[i][j] = 0;
+      }
+     }
+    }
+    if(end ==72){ // 상 
+     if(i!=0){ // 게임판의 위의 값이 0이라면 
+      if(game_board[i-1][j] == 0){
+       game_board[i-1][j] = game_board[i][j];
+       game_board[i][j] = 0;
+      }
+      else if(game_board[i-1][j] == game_board[i][j]){
+       game_board[i-1][j] += game_board[i][j];
+       game_board[i][j] = 0;
+      }
+     }
+    }
+   }
+  }
+  for(int i=XSIZE-1;i>=0;i--){ 
+   for(int j=YSIZE-1;j>=0;j--){
+    if(end ==77){ // 우 
+     if(j!=3){ // 게임판의 우측의 값이 0이라면 
+      if(game_board[i][j+1] == 0){
+       game_board[i][j+1] = game_board[i][j];
+       game_board[i][j] = 0;
+      }
+      else if(game_board[i][j+1] == game_board[i][j]){ // else위치 조심 
+       game_board[i][j+1] += game_board[i][j];
+       game_board[i][j] = 0;
+      }
+     }
+    }
+    if(end ==80){ // 하 
+     if(i!=3){ // 게임판의 아래의 값이 0이라면 
+      if(game_board[i+1][j] == 0){
+       game_board[i+1][j] = game_board[i][j];
+       game_board[i][j] = 0;
+      }
+      else if(game_board[i+1][j] == game_board[i][j]){
+       game_board[i+1][j] += game_board[i][j];
+       game_board[i][j] = 0;
+      }
+     }
+    }
+   }
+  }
+ }
+}
+
+void game_rule(){ // 턴수와 레벨을 비례하여 랜덤한 장소에 숫자 생성 
+ srand((unsigned)time(NULL));
+ int j=0;
+ if(level == 0){
+  if((count%2) == 1){
+   for(int i=0;i<1;j++){
+    int x = rand()%XSIZE;
+    int y = rand()%YSIZE;
+    if(game_board[x][y] == 0){
+     game_board[x][y] = 1;
+     i++;
+    }
+    if(j>1000){
+     break;
+    }
+   }
+  }
+ }
+ else{
+  for(int i=0;i<1;j++){
+   int x = rand()%XSIZE;
+   int y = rand()%YSIZE;
+   if(game_board[x][y] == 0){
+    game_board[x][y] = 1;
+    i++;
+   }
+   if(j>1000){
+    break;
+   }
+  }
+ }
+}
+
+
+int main(){
+ char end;
+ game();
+ for(;;){
+  if(show() == false){
+   cout << "실패 하셨습니다. 다음기회를 노려 주세요!" << endl;
+   break;
+  }
+  end =_getch();
+  if(end == 'y'){
+   break;
+  }
+  game_rule(end);
+  if(higher >= 1024){
+   break;
+  }
+  game_rule();
+  count++;
+  system("cls");
+ }
+ 
+}
