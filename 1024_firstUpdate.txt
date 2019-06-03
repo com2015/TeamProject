@@ -261,7 +261,6 @@ int main(){
 			cout << "기록을 저장하기 위한 이름을 입력해주세요 : ";
 			cin >> name;
 			dbInsert();
-			cout << "현재 랭킹" << endl;
 			break;
 		}
 		game_rule();
