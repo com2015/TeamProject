@@ -1,0 +1,43 @@
+int dbInsert() {
+	const char* host = "localhost";
+	const char* user = "root";
+	const char* pw = "1234";
+	const char* db = "game";
+
+	MYSQL* connection = NULL;
+	MYSQL con;
+	
+	//연결이 안될 경우 에러 메세지 출력 
+	if (mysql_init(&con) == NULL) {
+		cout << "Error : Can't DB Connect"; 
+	} 
+
+	connection = mysql_real_connect(&con, host, user, pw, db, 3306, (const char*)NULL, 0); // MYSQL 구조체의 주소, 호스트 주소, id, pw, 포트, 소켓, flag
+
+	//커넥션을 얻는 데 실패 할 경우 에러 발생
+	if (connection == NULL) {
+		cout << mysql_errno(&con) << "Error" << mysql_error(&con);
+		return 1;
+	} 
+	else {
+		//db선택, 실패 할 경우 에러 발생 
+		if (mysql_select_db(&con, db)) {
+			cout << mysql_errno(&con) << "Error" << mysql_error(&con);
+			return 1;
+		}
+		//인코딩 형식 설정 
+		mysql_query(connection, "set names euckr");
+
+		int state;
+		char query[255];
+		//char배열 query에 쿼리문을 넣어준다. 
+		sprintf_s(query, "insert into game values ('%s', '%d', '%d')", name, higher, turn);
+		//쿼리문 전송에 성공하면 1, 실패 시 0 반환 
+		state = mysql_query(connection, query);
+		//쿼리문 전송에 성공했는지 여부 판단, 실패 시 에러 발생 
+		if (state != 0) {
+			cout << mysql_errno(&con) << "Error" << mysql_error(&con);
+			return 1;
+		}
+	}
+}
