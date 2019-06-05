@@ -25,8 +25,6 @@ int dbInsert() {
 			cout << mysql_errno(&con) << "Error" << mysql_error(&con);
 			return 1;
 		}
-		//인코딩 형식 설정 
-		mysql_query(connection, "set names euckr");
 
 		int state;
 		char query[255];
