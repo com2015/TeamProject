@@ -1,0 +1,94 @@
+int dbInsert() {
+	const char* host = "localhost";
+	const char* user = "root";
+	const char* pw = "1234";
+	const char* db = "game";
+
+	MYSQL* connection = NULL;
+	MYSQL con;
+	
+	//연결이 안될 경우 에러 메세지 출력 
+	if (mysql_init(&con) == NULL) {
+		cout << "Error : Can't DB Connect"; 
+	} 
+
+	connection = mysql_real_connect(&con, host, user, pw, db, 3306, (const char*)NULL, 0); // MYSQL 구조체의 주소, 호스트 주소, id, pw, 포트, 소켓, flag
+
+	//커넥션을 얻는 데 실패 할 경우 에러 발생
+	if (connection == NULL) {
+		cout << mysql_errno(&con) << "Error" << mysql_error(&con);
+		return 1;
+	} 
+	else {
+		//db선택, 실패 할 경우 에러 발생 
+		if (mysql_select_db(&con, db)) {
+			cout << mysql_errno(&con) << "Error" << mysql_error(&con);
+			return 1;
+		}
+
+		int state;
+		char query[255];
+		//char배열 query에 쿼리문을 넣어준다. 
+		sprintf_s(query, "insert into game values ('%s', '%d', '%d')", name, higher, turn);
+		//쿼리문 전송에 성공하면 1, 실패 시 0 반환 
+		state = mysql_query(connection, query);
+		//쿼리문 전송에 성공했는지 여부 판단, 실패 시 에러 발생 
+		if (state != 0) {
+			cout << mysql_errno(&con) << "Error" << mysql_error(&con);
+			return 1;
+		}
+	}
+}
+
+/// 여기부터 6/6 추가코드
+void dbSelect() {
+	const char* host = "localhost";
+	const char* user = "root";
+	const char* pw = "1234";
+	const char* db = "game";
+
+	MYSQL* connection = NULL;
+	MYSQL con;
+	MYSQL_RES* sql_result;
+	MYSQL_ROW sql_row;
+
+	vector<pair<pair<int, int>, string>> sql_data;
+
+	if (mysql_init(&con) == NULL) {
+		cout << "Error : Can't DB Connect";
+	}
+
+	connection = mysql_real_connect(&con, host, user, pw, db, 3306, (const char*)NULL, 0);
+
+	if (connection == NULL) {
+		cout << mysql_errno(&con) << "Error" << mysql_error(&con);
+	}
+	else {
+		if (mysql_select_db(&con, db)) {
+			cout << mysql_errno(&con) << "Error" << mysql_error(&con);
+		}
+
+		int state;
+		char query[255];
+		sprintf_s(query, "select * from game order by name, higher, turn");
+
+		state = mysql_query(connection, query);
+
+		if (state == 0) {
+			sql_result = mysql_store_result(connection);
+
+			while ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
+				pair<int, int> higher_and_turn = make_pair(atoi(sql_row[1]), atoi(sql_row[2]) * -1);
+				sql_data.push_back(make_pair(higher_and_turn, string(sql_row[0])));
+			}
+
+			sort(sql_data.begin(), sql_data.end(), greater<pair<pair<int, int>, string>>());
+
+			for (auto i = sql_data.begin(); i != sql_data.end(); i++)
+				cout << "|" << (*i).second << "\t|      " << (*i).first.first << "\t|   " << (*i).first.second * -1 << "\t|" <<endl;
+
+			mysql_free_result(sql_result);
+		}
+		mysql_close(connection);
+	}
+}
